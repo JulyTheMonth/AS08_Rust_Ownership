@@ -4,7 +4,7 @@ use std::collections::HashSet;
 /// Evaluates a term:
 /// In order to simplify the term as much as possible, we use a call-by-value strategy.
 /// We even evaluate the body of an abstraction eagerly.
-/// 
+///
 /// The evaluation rules are as follows:
 /// - A variable evaluates to itself.
 /// - An abstraction evaluates to itself, even the body is eagerly evaluated.
@@ -17,9 +17,25 @@ use std::collections::HashSet;
 ///   `(λx. (λy. x)) z` evaluates to `λy. z`.
 ///   `(λx. (λy. x)) a b` evaluates to `a`.
 pub fn eval(term: &Term) -> Term {
-    term.clone()
-    // TODO: "Implement the eval function")
+
+    match term {
+        Term::Var(_) => term.clone(),
+        Term::Abs(param, body) => abs(param, eval(body)),
+        Term::App(t1, t2) => {
+            let v1 = eval(t1);
+            let v2 = eval(t2);
+            match v1 {
+                Term::Abs(param, body) => {
+                    let result = &substitute(&body, &param, &v2);
+                    eval(result)
+                },
+                _ => app(v1, v2),
+            }
+        }
+    }
 }
+
+
 
 
 
